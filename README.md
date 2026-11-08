@@ -237,7 +237,7 @@ The interactive invoice inspection, extraction, validation, reference comparison
 
 ## Links
 
-- **Live demo:** https://datatrustst.streamlit.app/
+- **Live demo:** [https://datatrustst.streamlit.app/](https://datatrustt.streamlit.app/)
 - **Repository:** https://github.com/UmmeRubab/DataTrust
 - **Dataset:** https://huggingface.co/datasets/drew-ipp/invoice-extraction-benchmark
 
