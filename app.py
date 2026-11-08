@@ -2,6 +2,7 @@
 import io
 import json
 import mimetypes
+import fitz  # PyMuPDF
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
@@ -52,6 +53,33 @@ h1,h2,h3 {font-family:'Manrope',sans-serif!important;color:#12253A!important;let
 .dt-sub {font-size:13px;color:#65768A;margin-bottom:15px}
 .dt-note {border-left:3px solid #0E9C91;padding:12px 14px;background:#E9F6F3;color:#23534E;border-radius:0 9px 9px 0;font-size:13px}
 .dt-placeholder {height:290px;background:#F0F5F8;border:1px dashed #C9D8E2;border-radius:12px;display:flex;align-items:center;justify-content:center;text-align:center;color:#6C8292;padding:20px}
+/* Contrast fixes for all native Streamlit buttons and download actions */
+.stButton button[kind="secondary"],
+.stDownloadButton button,
+.stLinkButton a {
+    background:#FFFFFF!important;
+    color:#12334C!important;
+    border:1px solid #B7C8D5!important;
+    border-radius:10px!important;
+    font-weight:700!important;
+}
+.stButton button[kind="secondary"]:hover,
+.stDownloadButton button:hover,
+.stLinkButton a:hover {
+    background:#E9F6F3!important;
+    color:#075F5A!important;
+    border-color:#087F78!important;
+}
+.stButton button[kind="primary"] {
+    background:#087F78!important;
+    color:#FFFFFF!important;
+    border:1px solid #087F78!important;
+}
+.stButton button[kind="primary"]:hover {
+    background:#06655F!important;
+    color:#FFFFFF!important;
+}
+.stButton button p, .stDownloadButton button p, .stLinkButton a p {color:inherit!important}
 </style>
 """, unsafe_allow_html=True)
 
@@ -396,7 +424,21 @@ def normalize_date(value):
         return normalize_text(value)
 
 
+def normalize_currency(value):
+    """Normalize only unambiguous currency representations for evaluation."""
+    if value is None:
+        return None
+    normalized = str(value).strip().upper()
+    symbols = {"$": "USD", "US$": "USD", "USD": "USD",
+               "€": "EUR", "EUR": "EUR", "£": "GBP", "GBP": "GBP",
+               "¥": "JPY", "JPY": "JPY"}
+    return symbols.get(normalized, normalized)
+
+
 def match_field(field, predicted, expected):
+    if field == "currency":
+        return normalize_currency(predicted) == normalize_currency(expected)
+
     if field in NUMERIC_FIELDS:
         a = to_decimal(predicted)
         b = to_decimal(expected)
@@ -563,14 +605,19 @@ with left:
             if mime.startswith("image/"):
                 st.image(content, use_container_width=True)
             elif mime == "application/pdf":
-                import base64
-                encoded = base64.b64encode(content).decode("ascii")
-                st.markdown(
-                    f'<iframe src="data:application/pdf;base64,{encoded}" width="100%" height="530" '
-                    'style="border:1px solid #DCE5ED;border-radius:10px;background:white"></iframe>',
-                    unsafe_allow_html=True,
-                )
-                st.caption("If PDF preview is blocked by your browser, download it below.")
+                try:
+                    with fitz.open(stream=content, filetype="pdf") as pdf:
+                        page_count = len(pdf)
+                        page_number = st.selectbox(
+                            "Preview page",
+                            range(1, page_count + 1),
+                            key=f"pdf_page_{loaded_id}",
+                        ) if page_count > 1 else 1
+                        page = pdf.load_page(page_number - 1)
+                        pix = page.get_pixmap(matrix=fitz.Matrix(1.6, 1.6), alpha=False)
+                        st.image(pix.tobytes("png"), caption=f"Original invoice · Page {page_number}/{page_count}", use_container_width=True)
+                except Exception as error:
+                    st.warning(f"Preview unavailable: {error}. You can still download the original PDF.")
                 st.download_button("Download original PDF", data=content, file_name=f"{loaded_id}.pdf",
                                    mime="application/pdf", use_container_width=True)
         else:
@@ -662,6 +709,7 @@ with bench:
                     b.metric("Correct", correct)
                     c.metric("Compared", total)
                     st.dataframe(results, hide_index=True, use_container_width=True)
+                    st.caption("Currency comparison normalizes unambiguous symbols (e.g., $ → USD). Original predictions and reference values remain unchanged. Per-document score only.")
                     st.download_button("Export evaluation CSV", data=results.to_csv(index=False),
                                        file_name=f"{loaded_id}_evaluation.csv", mime="text/csv",
                                        use_container_width=True)

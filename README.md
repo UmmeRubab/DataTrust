@@ -77,7 +77,7 @@ Data Quality Rules       Reference Answer Key
 - **Data Processing:** Pandas
 - **Visualization:** Plotly
 - **Dataset Access:** Hugging Face Hub
-- **PDF Utilities:** pypdf
+- **PDF Utilities:** pypdf, PyMuPDF (server-side PDF preview)
 - **Image Utilities:** Pillow
 - **Deployment:** Streamlit Community Cloud
 - **Version Control:** Git and GitHub
