@@ -1,225 +1,246 @@
-# DataTrust
-### Intelligent Invoice Processing and Data Quality Evaluation
+# DataTrust / Quality Studio
 
-**DataTrust** is a Python and Streamlit research prototype for extracting structured information from invoices, validating data quality, and comparing extracted fields against reference annotations.
+**Multimodal Invoice Extraction, Data Quality Validation, and Benchmark Evaluation**
 
-The project investigates the reliability of AI-assisted document processing, with an emphasis on data correctness, transparent validation, and reproducible evaluation.
+[Live Application](https://datatrustst.streamlit.app/) · [Source Code](https://github.com/UmmeRubab/DataTrust)
 
-## Project Links
+## Overview
 
-- **GitHub:** https://github.com/UmmeRubab/DataTrust
-- **Dataset:** https://huggingface.co/datasets/drew-ipp/invoice-extraction-benchmark
-- **Live Demo:** https://datatrustt.streamlit.app/
+DataTrust is an interactive research prototype for examining the reliability of AI-assisted invoice data extraction. It combines multimodal document understanding with deterministic data-quality checks and comparison against publicly available reference annotations.
 
-## Problem Statement
+The application is designed to answer a practical question: **Can structured information extracted from an invoice be checked systematically before it is trusted or used downstream?**
 
-Invoices contain structured financial information presented in different document layouts. Manual extraction can be time-consuming, while automated extraction can introduce missing fields, incorrect values, and calculation inconsistencies.
+Rather than presenting model-generated fields as automatically correct, DataTrust separates extraction, validation, and benchmark evaluation. It supports individual document inspection and exploratory batch experiments through a Streamlit interface.
 
-DataTrust explores how AI extraction and deterministic validation can be combined to identify potential data-quality problems.
+## Key Features
 
-## Objectives
+- **Public invoice explorer:** Select and inspect synthetic invoice documents from a public benchmark, including document category and difficulty where available.
+- **Multimodal extraction:** Use the Gemini API to extract invoice fields and line items from document content.
+- **Readable extraction results:** Display supplier information, invoice identifiers, dates, currency, financial totals, and itemized entries in tables.
+- **Deterministic quality checks:** Identify missing or inconsistent fields, date issues, line-item arithmetic discrepancies, and differences between subtotal, tax, and total.
+- **Reference comparison:** Compare supported extracted fields with the dataset's answer keys using field-aware normalization, including supported currency symbol/code equivalences.
+- **Batch evaluation:** Evaluate a selected number of benchmark documents, with document-level status, field-level matches, aggregate match rates, and error analysis.
+- **Research exports:** Download field-level results, per-field summaries, document-level results, and single-document evaluation results as CSV files.
+- **Failure visibility:** Report failed or unmapped documents separately instead of treating them as successful evaluations.
 
-1. Extract structured fields from invoice PDFs and images.
-2. Detect missing and inconsistent information.
-3. Validate arithmetic and date relationships.
-4. Compare extracted values with public reference annotations.
-5. Investigate extraction failures and reliability limitations.
-
-## Current Features
-
-| Component | Description |
-|---|---|
-| Public invoice selection | Select documents from a public benchmark |
-| Multimodal extraction | Extract invoice fields using Gemini |
-| Structured output | Generate JSON containing invoice information |
-| Required-field validation | Identify missing essential information |
-| Financial reconciliation | Flag subtotal, tax, and total mismatches |
-| Date validation | Check invoice and due-date consistency |
-| Line-item validation | Flag quantity and unit-price inconsistencies |
-| Benchmark comparison | Compare supported fields with reference annotations |
-| Export | Download extracted JSON and evaluation CSV |
-
-**Status:** Initial prototype. End-to-end functionality and benchmark compatibility must be verified on the deployed application.
-
-## System Architecture
+## System Workflow
 
 ```text
-Public Invoice Benchmark
-          |
-          v
-Document Selection and Loading
-          |
-          v
-Gemini Multimodal Extraction
-          |
-          v
-Structured Invoice JSON
-          |
-          +----------------------+
-          |                      |
-          v                      v
-Data Quality Rules       Reference Answer Key
-          |                      |
-          +-----------+----------+
-                      |
-                      v
-           Evaluation and Reports
-                      |
-                      v
-               JSON / CSV Export
+Public Synthetic Invoice Dataset
+             |
+             v
+   Document Selection & Preview
+             |
+             v
+    Gemini Multimodal Extraction
+             |
+             v
+      Structured Invoice Fields
+             |
+       +-----+------+
+       |            |
+       v            v
+Deterministic    Reference Answer
+Quality Checks      Comparison
+       |            |
+       +-----+------+
+             |
+             v
+    Evaluation & Error Analysis
+             |
+             v
+   Streamlit Dashboard / CSV Export
 ```
 
-## Technology Stack
+## Extracted Information
 
-- **Language:** Python 3.12
-- **Application:** Streamlit
-- **AI:** Google Gemini API
-- **Data Processing:** Pandas
-- **Visualization:** Plotly
-- **Dataset Access:** Hugging Face Hub
-- **PDF Utilities:** pypdf, PyMuPDF (server-side PDF preview)
-- **Image Utilities:** Pillow
-- **Deployment:** Streamlit Community Cloud
-- **Version Control:** Git and GitHub
+The prototype is designed to extract and display:
+
+| Group | Example fields |
+| --- | --- |
+| Supplier | Supplier/vendor name |
+| Invoice identity | Invoice number, invoice date, due date |
+| Currency | Currency symbol or code |
+| Amounts | Subtotal, tax, total |
+| Line items | Description, quantity, unit price, amount |
+
+The exact fields available depend on the document and extraction response. A missing value is not automatically an extraction error if the original invoice does not contain that information.
 
 ## Dataset
 
-DataTrust uses the public **Invoice Extraction Benchmark** by drew-ipp.
+**Public benchmark:** [`drew-ipp/invoice-extraction-benchmark`](https://huggingface.co/datasets/drew-ipp/invoice-extraction-benchmark) on Hugging Face.
 
-Dataset repository:
-https://huggingface.co/datasets/drew-ipp/invoice-extraction-benchmark
+The deployed interface displays **181 available benchmark documents**. The dataset contains synthetic invoice examples and reference annotations used for exploratory evaluation. DataTrust does not require users to upload private invoices.
 
-The benchmark contains synthetic invoice documents and reference annotations. Dataset attribution and applicable licensing requirements remain with the original dataset publisher.
+**Important:** The number of available documents is not the number of documents evaluated in a given experiment. Report the evaluated sample size alongside every result.
 
-The dataset is downloaded as needed and is not bundled with this repository.
+## Technology Stack
 
-## Getting Started
+- **Python** — application logic, validation, and evaluation
+- **Streamlit** — interactive research interface
+- **Google Gemini API (`google-genai`)** — multimodal document extraction
+- **Pandas** — tabular analysis and CSV exports
+- **Plotly** — evaluation charts
+- **Hugging Face Hub** — public benchmark access
+- **PyPDF / Pillow** — document and image handling where applicable
+
+The Gemini model is configured through the `GEMINI_MODEL` secret. Model availability, API limits, and billing conditions are controlled by the API provider and may change.
+
+## Local Setup
 
 ### Prerequisites
 
-- Python 3.12
-- Git
-- Gemini API key
+- Python 3.12 recommended
+- A Gemini API key with access to a compatible multimodal model
+- Internet connectivity for API calls and public dataset downloads
 
-### Clone
+### Installation
 
-```powershell
+Clone the repository and enter the project directory:
+
+```bash
 git clone https://github.com/UmmeRubab/DataTrust.git
 cd DataTrust
 ```
 
-### Create a virtual environment
+Create and activate a virtual environment on Windows PowerShell:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
-### Install dependencies
+Install dependencies:
 
 ```powershell
 python -m pip install -r requirements.txt
 ```
 
-### Configure secrets
-
-Create `.streamlit/secrets.toml`:
+Create `.streamlit/secrets.toml` locally:
 
 ```toml
 GEMINI_API_KEY = "YOUR_GEMINI_API_KEY"
-GEMINI_MODEL = "YOUR_SUPPORTED_GEMINI_MODEL"
+GEMINI_MODEL = "YOUR_AVAILABLE_GEMINI_MODEL"
 ```
 
-Do not commit API keys.
+Set `GEMINI_MODEL` to a model supported by your API account. The deployed prototype has been demonstrated using a configured Gemini model; the README intentionally does not assume universal access to a particular model ID.
 
-### Run locally (optional)
+Run the application:
 
 ```powershell
 python -m streamlit run app.py
 ```
 
-The hosted application runs on Streamlit Community Cloud.
+**Security:** Never commit `.streamlit/secrets.toml`, API keys, or other credentials. Confirm the secrets file is excluded by `.gitignore` before pushing changes.
 
-## Research Methodology
+## Using the Application
 
-1. Select an invoice document.
-2. Perform multimodal field extraction.
-3. Validate the extracted values using deterministic rules.
-4. Load the corresponding reference annotation.
-5. Compare supported fields.
-6. Inspect errors and possible causes.
+### Individual Invoice Analysis
 
-See [Research Methodology](docs/RESEARCH.md).
+1. Choose a document category and benchmark invoice.
+2. Click **Load selected invoice** to inspect the source document.
+3. Click **Extract & validate** to request multimodal extraction.
+4. Review the extracted fields, line items, and quality findings.
+5. Click **Compare with ground truth** to evaluate supported fields against the public answer key.
+6. Export the available evaluation results as CSV when needed.
 
-## Evaluation
+### Batch Benchmark & Error Analysis
 
-The prototype implements field-level comparison for supported invoice attributes.
+1. Select the experiment category and number of documents.
+2. Review the configured model and potential API usage.
+3. Click **Run batch evaluation**.
+4. Inspect attempted, evaluated, and failed document counts; micro field match; macro document-average match; and per-field results.
+5. Review document-level failures and validation findings before interpreting aggregate metrics.
+6. Export field-level, per-field, or document-level CSV reports for further analysis.
 
-Potential evaluation dimensions include:
+The current sampling approach processes the first *N* documents in dataset order for the selected category; it is **not randomized**. Batch results are maintained in the active Streamlit session and may be lost when that session resets.
 
-- Field-level accuracy
-- Missing-value detection
-- Numeric extraction error
-- Document-category performance
-- Arithmetic inconsistency detection
-- Line-item extraction performance
+## Evaluation Methodology
 
-**No aggregate benchmark accuracy is claimed at this stage.**
+### Field Comparison
 
-## Current Limitations
+Supported predicted fields are mapped to corresponding reference annotations. The comparison applies field-aware normalization where appropriate. For example, an unambiguous US-dollar symbol (`$`) may be considered equivalent to `USD` for comparison purposes while the original predicted and reference values remain visible.
 
-- The current implementation evaluates one document at a time.
-- Reference field mapping may require adaptation to the dataset schema.
-- Official benchmark scoring has not yet been integrated.
-- Line-item extraction is not comprehensively scored.
-- Financial discrepancies can reflect legitimate adjustments.
-- Synthetic documents may not represent production invoice distributions.
-- Model availability and output quality depend on the configured Gemini API.
+The displayed field match rate is:
 
-## Planned Improvements
+```text
+Field match rate = Number of correct compared fields / Number of compared fields
+```
 
-- Batch evaluation across benchmark documents
-- Comparison with an independent extraction baseline
-- Error analysis by document category
-- More robust reference annotation mapping
-- Field-level uncertainty and human-review workflows
-- Improved document processing interface
-- Reproducible experiment reports
+### Batch Metrics
 
-## Documentation
+- **Micro field match:** Total correct mapped fields divided by total compared mapped fields across successfully evaluated documents.
+- **Macro document-average field match:** Mean of per-document field match rates for successfully evaluated documents.
+- **Per-field match rate:** Correct comparisons for a given field divided by its number of comparisons.
+- **Failure count:** Documents that could not be successfully extracted or evaluated are recorded separately.
+- **Validation findings:** Rule-based inconsistencies, which are distinct from reference-label mismatches.
 
-- [System Architecture](docs/ARCHITECTURE.md)
-- [Research Methodology](docs/RESEARCH.md)
-- [Deployment Guide](docs/DEPLOYMENT.md)
-- [Changelog](CHANGELOG.md)
+These metrics describe the implemented field comparisons, not a comprehensive measure of semantic correctness or end-to-end production reliability. Failed documents are excluded from the successful-evaluation match-rate denominator and must always be reported separately.
 
-## Author
+### Observed Prototype Results
 
-**Umme Rubab**
+During a small exploratory batch test, **3 of 3 documents were evaluated**, with **24 of 24 compared fields matching** (100% micro field match) for that specific run. This is a small, non-random sample and **must not be presented as accuracy across the full benchmark**.
 
-Research interests: Machine Learning, Natural Language Processing, Trustworthy AI, and Data Quality.
+In a separate run, some requests returned **HTTP 429 `RESOURCE_EXHAUSTED`** due to Gemini API quota or rate limits. Those documents were marked as failed, not as extraction successes. A transient **HTTP 503 `UNAVAILABLE`** response was also observed during testing. These are service-availability limitations and should be distinguished from model extraction errors.
 
-## Acknowledgments
+## Data Quality Rules
 
-Public invoice benchmark: drew-ipp / Invoice Extraction Benchmark.
+The implemented checks examine issues such as:
+
+- Required fields that are absent or incomplete
+- Financial reconciliation between subtotal, tax, and total
+- Due dates that precede invoice dates, when both are available
+- Line-item quantity × unit price versus stated line amount
+
+A flagged inconsistency is a **review signal**, not necessarily proof that the extracted data is wrong. For example, shipping charges, discounts, or other adjustments can explain a difference between subtotal + tax and the final total. Likewise, passing all current rules does not guarantee that an extraction is correct.
+
+## Research Questions
+
+DataTrust can support exploratory investigation of:
+
+1. Which invoice fields are most frequently misread or omitted by a multimodal model?
+2. How does extraction reliability vary by document category or difficulty?
+3. Which errors can be detected through deterministic validation without access to the reference answer key?
+4. How do service failures and missing reference mappings affect reported evaluation metrics?
+5. How do discounts, delivery fees, and other legitimate adjustments influence financial consistency checks?
+
+## Reproducibility and Limitations
+
+- The prototype uses **synthetic public invoices**; performance may differ on real-world documents.
+- The displayed 181-document collection has **not** been exhaustively evaluated in the results described here.
+- Small, sequential samples may overrepresent easy documents and are not statistically representative.
+- The model can return different outputs over time as provider behavior or model versions change.
+- API quotas, transient errors, and service availability can interrupt extraction and batch evaluation.
+- The current validation rules do not model every possible financial adjustment or invoice format.
+- The reported field match covers mapped reference fields; it does not necessarily score every extracted line item or all possible document attributes.
+- A missing field may be correctly absent, and matching null values can affect apparent accuracy; results should be interpreted alongside field coverage.
+- No independently implemented OCR-only or non-LLM baseline is included in the current prototype.
+- These results are **exploratory project measurements**, not official benchmark leaderboard scores.
+
+For reproducible future experiments, record the run date, configured model ID, selected category, document IDs, attempted and evaluated counts, failed requests, and exported CSV outputs.
+
+## Future Improvements
+
+- Add bounded retries and exponential backoff for transient 429/503 responses, respecting provider limits.
+- Introduce randomized or stratified sampling across categories and difficulty levels.
+- Expand experiments to larger samples and publish reproducible result files.
+- Add an independent baseline for meaningful model comparison.
+- Evaluate line-item extraction and field coverage more comprehensively.
+- Extend reconciliation logic for shipping, discounts, and other invoice adjustments.
+- Add optional confidence and error taxonomy analyses.
+
+## Project Status
+
+**Version 1.0 — Deployed Research Prototype**
+
+The interactive invoice inspection, extraction, validation, reference comparison, exploratory batch evaluation, and CSV reporting workflows have been demonstrated. Broader benchmark claims require additional controlled experiments.
+
+## Links
+
+- **Live demo:** https://datatrustst.streamlit.app/
+- **Repository:** https://github.com/UmmeRubab/DataTrust
+- **Dataset:** https://huggingface.co/datasets/drew-ipp/invoice-extraction-benchmark
 
 ## License
 
-No license has been selected for the DataTrust source code yet. All rights remain with the copyright holder unless a license is added.
-
-Third-party datasets, models, and libraries retain their respective licenses.
-
-
-## Batch Benchmarking (v0.3)
-
-The **Batch benchmark & error analysis** section processes a selected sample of 1–10 public invoice documents. It records successes, failures, per-document field match rates, validation findings, and per-field mismatches. It provides CSV exports and experiment metadata. Each document makes a Gemini API call; check API quota and pricing before running.
-
-**Metrics:** Micro field match is the proportion of correctly matched mapped fields across successfully evaluated documents. Macro field match is the average of per-document field match rates. Failed documents and documents with no mapped fields are counted separately, not silently treated as successes. Missing reference mappings are not evaluated.
-
-**Sampling:** The first N records in dataset order, optionally filtered by category. This is not a randomized or representative sample. There is no claim of official benchmark accuracy.
-
-**Currency:** A previous example extracted `$` where the answer key recorded `USD`. The application maps `$` to `USD` only when the benchmark document ID indicates US context; otherwise the symbol is left ambiguous. The raw model output is retained. The latest observed extraction returned `USD` directly. Future work should make currency mapping document-context-aware.
-
-**Reproducibility:** Download all available CSVs and the experiment metadata JSON immediately after a run; results are stored in the Streamlit browser session, not a persistent experiment database. Record model version, dataset revision, prompt, and code commit for publication-grade experiments.
-
-**Known limitations:** No independent OCR/regex baseline, no line-item scoring, no confidence calibration, no stratified sampling, and no official benchmark scoring protocol. Gemini model behavior and API availability may vary.
+No license is declared in this README. Refer to the repository for any subsequently added license file and to the dataset provider for dataset-specific terms.
