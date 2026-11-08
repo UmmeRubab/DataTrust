@@ -2,7 +2,7 @@
 
 **Multimodal Invoice Extraction, Data Quality Validation, and Benchmark Evaluation**
 
-[Live Application](https://datatrustst.streamlit.app/) · [Source Code](https://github.com/UmmeRubab/DataTrust)
+[Live Application]([https://datatrustst.streamlit.app/)](https://datatrustt.streamlit.app/) · [Source Code](https://github.com/UmmeRubab/DataTrust)
 
 ## Overview
 
