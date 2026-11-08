@@ -1,4 +1,4 @@
-﻿# DataTrust
+# DataTrust
 ### Intelligent Invoice Processing and Data Quality Evaluation
 
 **DataTrust** is a Python and Streamlit research prototype for extracting structured information from invoices, validating data quality, and comparing extracted fields against reference annotations.
@@ -9,7 +9,7 @@ The project investigates the reliability of AI-assisted document processing, wit
 
 - **GitHub:** https://github.com/UmmeRubab/DataTrust
 - **Dataset:** https://huggingface.co/datasets/drew-ipp/invoice-extraction-benchmark
-- **Live Demo:** Add your deployed Streamlit URL here
+- **Live Demo:** https://datatrustt.streamlit.app/
 
 ## Problem Statement
 

@@ -27,61 +27,31 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
-
-html, body, .stApp {
-    font-family: 'DM Sans', sans-serif;
-}
-
-.stApp {
-    background: #F5F7FA;
-    color: #15243A;
-}
-
-.block-container {
-    max-width: 1450px;
-    padding-top: 2rem;
-}
-
-h1, h2, h3 {
-    font-family: 'Space Grotesk', sans-serif !important;
-    letter-spacing: -0.035em;
-}
-
-h1 {
-    color: #10273D !important;
-}
-
-[data-testid="stMetric"] {
-    background: white;
-    border: 1px solid #E0E7EF;
-    border-radius: 14px;
-    padding: 18px;
-}
-
-.stButton > button[kind="primary"] {
-    background: #087F7A;
-    border: none;
-    border-radius: 9px;
-    font-weight: 600;
-}
-
-.stButton > button[kind="primary"]:hover {
-    background: #06645F;
-}
-
-[data-testid="stSidebar"] {
-    background: #10273D;
-}
-
-[data-testid="stSidebar"] * {
-    color: #E4EFF5;
-}
-
-div[data-testid="stDataFrame"] {
-    border-radius: 12px;
-    overflow: hidden;
-}
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
+.stApp {background:#F3F6FA;color:#18283D;font-family:'DM Sans',sans-serif}
+.block-container {max-width:1480px;padding:1.2rem 2.4rem 4rem}
+h1,h2,h3 {font-family:'Manrope',sans-serif!important;color:#12253A!important;letter-spacing:-.035em}
+[data-testid="stSidebar"] {display:none}
+[data-testid="stMetric"] {background:white;border:1px solid #E2E9F0;border-radius:14px;padding:16px}
+[data-testid="stMetricLabel"] {color:#65768A}
+[data-testid="stMetricValue"] {color:#12334C}
+.stButton>button[kind="primary"] {background:#087F78;color:white;border:0;border-radius:10px;font-weight:700}
+.stButton>button[kind="primary"]:hover {background:#06655F;color:white}
+.stButton>button {border-radius:10px}
+[data-baseweb="select"]>div {background:#FFFFFF!important;border:1px solid #D7E1E9!important;border-radius:10px!important}
+[data-baseweb="select"] * {color:#17344B!important}
+[data-testid="stWidgetLabel"] p {color:#31465B!important;font-weight:600}
+[data-testid="stDataFrame"] {border:1px solid #E2E9F0;border-radius:12px;overflow:hidden}
+[data-testid="stExpander"] {border:1px solid #DFE8F0;border-radius:12px;background:white}
+.dt-hero {background:linear-gradient(110deg,#10283D 0%,#153D50 68%,#0B756F 100%);border-radius:20px;padding:31px 34px;color:white;margin:10px 0 24px}
+.dt-eyebrow {font-size:11px;letter-spacing:.16em;color:#89E1D5;font-weight:800}
+.dt-hero h1 {color:white!important;font-size:35px;margin:9px 0 5px}
+.dt-hero p {color:#C5D8E1;font-size:14px;margin:0}
+.dt-kicker {font-size:11px;color:#087F78;font-weight:800;letter-spacing:.13em;text-transform:uppercase;margin:18px 0 4px}
+.dt-section {font-family:'Manrope',sans-serif;font-size:22px;font-weight:800;color:#152C41;margin:0 0 5px}
+.dt-sub {font-size:13px;color:#65768A;margin-bottom:15px}
+.dt-note {border-left:3px solid #0E9C91;padding:12px 14px;background:#E9F6F3;color:#23534E;border-radius:0 9px 9px 0;font-size:13px}
+.dt-placeholder {height:290px;background:#F0F5F8;border:1px dashed #C9D8E2;border-radius:12px;display:flex;align-items:center;justify-content:center;text-align:center;color:#6C8292;padding:20px}
 </style>
 """, unsafe_allow_html=True)
 
@@ -515,364 +485,204 @@ def evaluate_extraction(prediction, reference):
 
 
 # ============================================================
-# APPLICATION INTERFACE
+# DOCUMENT INTELLIGENCE WORKSPACE
 # ============================================================
 
-st.title("🛡️ DataTrust")
-st.caption(
-    "AI-Powered Invoice Extraction, Data Quality Validation "
-    "& Benchmark Evaluation"
-)
-
-with st.sidebar:
-    st.header("Research Configuration")
-    st.write("**Dataset:** Invoice Extraction Benchmark v1")
-    st.write("**Extraction:** Gemini multimodal AI")
-    st.write("**Validation:** Rule-based quality checks")
-    st.write("**Evaluation:** Public reference annotations")
-
-    st.divider()
-
-    st.caption(
-        "Public synthetic invoices are used for research and "
-        "development. No private company invoices are required."
-    )
-
-tab1, tab2, tab3, tab4 = st.tabs([
-    "Invoice Laboratory",
-    "Quality Validation",
-    "Benchmark Evaluation",
-    "Research Design",
-])
+st.markdown("""
+<div class="dt-hero">
+  <div class="dt-eyebrow">DOCUMENT INTELLIGENCE / RESEARCH WORKSPACE</div>
+  <h1>DataTrust <span style="color:#77E4D4">/</span> Quality Studio</h1>
+  <p>Extract invoice data. Investigate inconsistencies. Evaluate reliability against public annotations.</p>
+</div>
+""", unsafe_allow_html=True)
 
 try:
     metadata = load_metadata()
 except Exception as error:
     metadata = []
-    st.error(
-        "Unable to load the public benchmark metadata. "
-        f"Details: {error}"
+    st.error(f"Unable to load benchmark metadata: {error}")
+
+if not metadata:
+    st.info("The workspace is waiting for public benchmark metadata.")
+    st.stop()
+
+st.markdown('<div class="dt-kicker">01 / Document selection</div>', unsafe_allow_html=True)
+filter_col, doc_col = st.columns([1, 2], gap="medium")
+with filter_col:
+    categories = sorted({str(row.get("category", "Unknown")) for row in metadata})
+    category = st.selectbox("Document category", ["All categories"] + categories)
+filtered = [r for r in metadata if category == "All categories" or str(r.get("category", "Unknown")) == category]
+with doc_col:
+    selected_index = st.selectbox(
+        "Benchmark document", range(len(filtered)),
+        format_func=lambda i: f"{filtered[i].get('doc_id', 'Unknown')} · {filtered[i].get('difficulty', 'Unspecified')}",
     )
+selected_record = filtered[selected_index]
+selected_id = str(selected_record.get("doc_id"))
+loaded_record = st.session_state.get("record")
+loaded_id = str(loaded_record.get("doc_id")) if loaded_record else None
+document_ready = loaded_record is not None and "document_bytes" in st.session_state
+prediction = st.session_state.get("prediction") if document_ready else None
+issues = st.session_state.get("issues", []) if prediction is not None else []
+reference_ready = (
+    prediction is not None and st.session_state.get("reference_id") == loaded_id
+    and "reference" in st.session_state
+)
 
-if metadata:
+m1, m2, m3, m4 = st.columns(4)
+m1.metric("Benchmark documents", len(metadata))
+m2.metric("Selected category", str(selected_record.get("category", "Unknown")).title())
+m3.metric("Extraction", "Complete" if prediction is not None else "Pending")
+m4.metric("Quality findings", len(issues) if prediction is not None else "—")
 
-    with tab1:
-        st.subheader("Invoice Laboratory")
+st.markdown('<div class="dt-kicker">02 / Document processing</div>', unsafe_allow_html=True)
+st.markdown('<div class="dt-section">Inspection & extraction</div>', unsafe_allow_html=True)
+st.markdown('<div class="dt-sub">Original invoice on the left. Structured AI extraction on the right.</div>', unsafe_allow_html=True)
+left, right = st.columns([1.12, 1], gap="large")
 
-        st.write(
-            "Select a public invoice, inspect its contents, "
-            "and extract structured data using Gemini."
-        )
-
-        categories = sorted({
-            str(row.get("category", "Unknown"))
-            for row in metadata
-        })
-
-        selected_category = st.selectbox(
-            "Invoice category",
-            ["All"] + categories,
-        )
-
-        filtered = [
-            row for row in metadata
-            if selected_category == "All"
-            or str(row.get("category", "Unknown")) == selected_category
-        ]
-
-        selected_index = st.selectbox(
-            "Choose an invoice",
-            range(len(filtered)),
-            format_func=lambda index: (
-                f"{filtered[index].get('doc_id', 'Unknown')} "
-                f"— {filtered[index].get('difficulty', 'Unspecified')}"
-            ),
-        )
-
-        selected_record = filtered[selected_index]
-        selected_id = str(selected_record.get("doc_id"))
-
-        st.write(
-            "**Category:**",
-            selected_record.get("category", "Unknown"),
-        )
-
-        st.write(
-            "**Difficulty:**",
-            selected_record.get("difficulty", "Unspecified"),
-        )
-
-        if st.button("Load Public Invoice", type="primary"):
+with left:
+    with st.container(border=True):
+        st.markdown("#### Document inspector")
+        st.caption(f"Selected: {selected_id} · Difficulty: {selected_record.get('difficulty', 'Unspecified')}")
+        if st.button("Load selected invoice", type="primary", use_container_width=True):
             try:
                 with st.spinner("Downloading public invoice..."):
-                    document_bytes, mime_type = load_selected_document(
-                        selected_record
-                    )
-
-                st.session_state["document_bytes"] = document_bytes
-                st.session_state["mime_type"] = mime_type
+                    content, mime = load_selected_document(selected_record)
+                st.session_state["document_bytes"] = content
+                st.session_state["mime_type"] = mime
                 st.session_state["record"] = selected_record
-                st.session_state.pop("prediction", None)
-                st.session_state.pop("issues", None)
-
-                st.success("Invoice loaded successfully.")
-
+                for key in ("prediction", "issues", "reference", "reference_id"):
+                    st.session_state.pop(key, None)
+                st.rerun()
             except Exception as error:
                 st.error(f"Invoice loading failed: {error}")
-
-        loaded_record = st.session_state.get("record")
-
-        if loaded_record is not None:
-            loaded_id = loaded_record.get("doc_id")
-
-            st.info(f"Loaded invoice: {loaded_id}")
-
-            document_bytes = st.session_state["document_bytes"]
-            mime_type = st.session_state["mime_type"]
-
-            if mime_type.startswith("image/"):
-                st.image(
-                    document_bytes,
-                    caption="Public benchmark invoice",
-                    use_container_width=True,
+        if document_ready:
+            st.success(f"Loaded invoice: {loaded_id}")
+            content = st.session_state["document_bytes"]
+            mime = st.session_state["mime_type"]
+            if mime.startswith("image/"):
+                st.image(content, use_container_width=True)
+            elif mime == "application/pdf":
+                import base64
+                encoded = base64.b64encode(content).decode("ascii")
+                st.markdown(
+                    f'<iframe src="data:application/pdf;base64,{encoded}" width="100%" height="530" '
+                    'style="border:1px solid #DCE5ED;border-radius:10px;background:white"></iframe>',
+                    unsafe_allow_html=True,
                 )
+                st.caption("If PDF preview is blocked by your browser, download it below.")
+                st.download_button("Download original PDF", data=content, file_name=f"{loaded_id}.pdf",
+                                   mime="application/pdf", use_container_width=True)
+        else:
+            st.markdown('<div class="dt-placeholder">Load a benchmark invoice to inspect its original document here.</div>',
+                        unsafe_allow_html=True)
 
-            else:
-                st.download_button(
-                    "View / Download Invoice PDF",
-                    data=document_bytes,
-                    file_name=f"{loaded_id}.pdf",
-                    mime="application/pdf",
-                )
-
-            if st.button("Run AI Extraction & Validation"):
+with right:
+    with st.container(border=True):
+        st.markdown("#### AI extraction")
+        st.caption("Gemini multimodal extraction · Structured JSON")
+        if not document_ready:
+            st.info("Load an invoice to enable extraction.")
+        else:
+            if selected_id != loaded_id:
+                st.warning("The selected invoice differs from the loaded one. Load it to switch.")
+            if st.button("Extract & validate", type="primary", use_container_width=True):
                 try:
-                    with st.spinner("Analyzing invoice with Gemini..."):
-                        prediction = extract_invoice(
-                            document_bytes,
-                            mime_type,
-                        )
-
-                    issues = validate_invoice(prediction)
-
-                    st.session_state["prediction"] = prediction
-                    st.session_state["issues"] = issues
-
-                    st.success("Invoice analysis completed.")
-
+                    with st.spinner("Extracting invoice fields and validating..."):
+                        result = extract_invoice(st.session_state["document_bytes"], st.session_state["mime_type"])
+                        findings = validate_invoice(result)
+                    st.session_state["prediction"] = result
+                    st.session_state["issues"] = findings
+                    st.session_state.pop("reference", None)
+                    st.session_state.pop("reference_id", None)
+                    st.rerun()
                 except Exception as error:
                     st.error(f"AI extraction failed: {error}")
-
-            prediction = st.session_state.get("prediction")
-
-            if prediction is not None:
-                st.subheader("Extracted Information")
+        if prediction is not None:
+            labels = {"vendor_name": "Supplier", "invoice_number": "Invoice number",
+                      "invoice_date": "Invoice date", "due_date": "Due date", "currency": "Currency",
+                      "subtotal": "Subtotal", "tax": "Tax", "total": "Total"}
+            rows = [{"Field": labels.get(field, field),
+                     "Extracted value": str(prediction.get(field)) if prediction.get(field) is not None else "Not found"}
+                    for field in FIELDS]
+            st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
+            items = prediction.get("line_items")
+            if isinstance(items, list) and items:
+                with st.expander(f"Line items ({len(items)})"):
+                    st.dataframe(pd.DataFrame(items), hide_index=True, use_container_width=True)
+            with st.expander("Full extraction JSON"):
                 st.json(prediction)
+            st.download_button("Download extracted JSON", data=json.dumps(prediction, indent=2),
+                               file_name=f"{loaded_id}_extraction.json", mime="application/json",
+                               use_container_width=True)
+        else:
+            st.markdown('<div class="dt-note">AI output is unverified until independent quality checks and reference comparison.</div>',
+                        unsafe_allow_html=True)
 
-                st.download_button(
-                    "Download Extracted JSON",
-                    data=json.dumps(prediction, indent=2),
-                    file_name=f"{loaded_id}_extraction.json",
-                    mime="application/json",
-                )
-
-    with tab2:
-        st.subheader("Data Quality Validation")
-
-        prediction = st.session_state.get("prediction")
-        issues = st.session_state.get("issues")
-
+st.markdown('<div class="dt-kicker">03 / Quality assurance</div>', unsafe_allow_html=True)
+st.markdown('<div class="dt-section">Validation & benchmark evidence</div>', unsafe_allow_html=True)
+qa, bench = st.columns(2, gap="large")
+with qa:
+    with st.container(border=True):
+        st.markdown("#### Data quality checks")
+        st.caption("Required fields · Totals · Dates · Line-item arithmetic")
         if prediction is None:
-            st.info(
-                "Load and extract an invoice in the "
-                "Invoice Laboratory first."
-            )
-
+            st.info("Extract an invoice to view validation findings.")
         elif issues:
-            st.warning(
-                f"{len(issues)} potential data-quality issue(s) found."
-            )
-
-            st.dataframe(
-                pd.DataFrame(issues),
-                use_container_width=True,
-                hide_index=True,
-            )
-
+            st.warning(f"{len(issues)} potential issue(s) require review.")
+            st.dataframe(pd.DataFrame(issues), hide_index=True, use_container_width=True)
         else:
-            st.success(
-                "No problems were detected by the current validation "
-                "rules. This is not a guarantee that the document "
-                "is error-free."
-            )
-
-    with tab3:
-        st.subheader("Benchmark Evaluation")
-
-        prediction = st.session_state.get("prediction")
-        loaded_record = st.session_state.get("record")
-
-        if prediction is None or loaded_record is None:
-            st.info(
-                "Extract an invoice before running the benchmark."
-            )
-
+            st.success("No issues detected by current rules. This is not a guarantee of correctness.")
+with bench:
+    with st.container(border=True):
+        st.markdown("#### Reference benchmark")
+        st.caption("Field comparison against public reference annotations")
+        if prediction is None:
+            st.info("Extract an invoice to enable benchmark comparison.")
         else:
-            if st.button("Compare With Ground Truth"):
+            if st.button("Compare with ground truth", use_container_width=True):
                 try:
-                    reference = load_reference(loaded_record)
-
+                    with st.spinner("Loading reference annotation..."):
+                        reference = load_reference(loaded_record)
                     st.session_state["reference"] = reference
-                    st.session_state["reference_id"] = (
-                        loaded_record.get("doc_id")
-                    )
-
+                    st.session_state["reference_id"] = loaded_id
+                    st.rerun()
                 except Exception as error:
-                    st.error(f"Unable to load answer key: {error}")
-
-            if (
-                "reference" in st.session_state
-                and st.session_state.get("reference_id")
-                == loaded_record.get("doc_id")
-            ):
+                    st.error(f"Reference loading failed: {error}")
+            if reference_ready:
                 reference = st.session_state["reference"]
-
-                results = evaluate_extraction(
-                    prediction,
-                    reference,
-                )
-
+                results = evaluate_extraction(prediction, reference)
                 if results.empty:
-                    st.warning(
-                        "The reference file was downloaded, but its "
-                        "field schema could not be mapped safely. "
-                        "Inspect the raw answer key below."
-                    )
-
+                    st.warning("Reference loaded but supported fields could not be mapped safely.")
                 else:
                     correct = int(results["Correct"].sum())
-                    total_fields = len(results)
-                    score = correct / total_fields
-
-                    col1, col2, col3 = st.columns(3)
-
-                    col1.metric(
-                        "Field Match Rate",
-                        f"{score:.1%}",
-                    )
-
-                    col2.metric(
-                        "Correct Fields",
-                        correct,
-                    )
-
-                    col3.metric(
-                        "Compared Fields",
-                        total_fields,
-                    )
-
-                    st.dataframe(
-                        results,
-                        use_container_width=True,
-                        hide_index=True,
-                    )
-
-                    chart_data = pd.DataFrame({
-                        "Result": ["Correct", "Incorrect"],
-                        "Count": [
-                            correct,
-                            total_fields - correct,
-                        ],
-                    })
-
-                    fig = px.bar(
-                        chart_data,
-                        x="Result",
-                        y="Count",
-                        title="Invoice Field Extraction Results",
-                    )
-
-                    st.plotly_chart(
-                        fig,
-                        use_container_width=True,
-                    )
-
-                    st.download_button(
-                        "Download Evaluation CSV",
-                        data=results.to_csv(index=False),
-                        file_name="datatrust_evaluation.csv",
-                        mime="text/csv",
-                    )
-
-                with st.expander("View Original Answer Key"):
+                    total = len(results)
+                    a, b, c = st.columns(3)
+                    a.metric("Field match", f"{correct / total:.1%}")
+                    b.metric("Correct", correct)
+                    c.metric("Compared", total)
+                    st.dataframe(results, hide_index=True, use_container_width=True)
+                    st.download_button("Export evaluation CSV", data=results.to_csv(index=False),
+                                       file_name=f"{loaded_id}_evaluation.csv", mime="text/csv",
+                                       use_container_width=True)
+                with st.expander("Original answer key"):
                     st.json(reference)
 
-    with tab4:
-        st.subheader("Research Methodology")
+with st.expander("Research protocol · Methods, limitations and reproducibility"):
+    st.markdown("""
+**Objective:** Study the reliability of multimodal invoice extraction using rule-based validation
+and public reference annotations.
 
-        st.markdown("""
-### Research Objective
+**Method:** Select a public invoice → extract structured fields → apply independent quality checks
+→ compare supported fields with the answer key → inspect discrepancies.
 
-Investigate the reliability of multimodal AI systems
-for extracting structured information from invoices.
+**Research questions:** Which fields are hardest to extract? How do document categories affect
+reliability? What inconsistencies can deterministic checks flag?
 
-### Research Questions
+**Limitations:** This is per-document evaluation, not an official benchmark score. Synthetic invoices
+may not represent production documents. Discrepancies can reflect legitimate adjustments.
+Batch evaluation and independent baselines are planned work.
+""")
+    st.link_button("View public benchmark dataset", f"https://huggingface.co/datasets/{REPO_ID}")
 
-**RQ1:** How accurately can a multimodal language model
-extract invoice header fields?
-
-**RQ2:** Which document categories cause the greatest
-extraction difficulties?
-
-**RQ3:** Can deterministic data-quality rules identify
-potential inconsistencies in extracted information?
-
-### Experimental Pipeline
-
-1. Select a public benchmark document.
-2. Extract invoice information with a multimodal model.
-3. Apply deterministic validation rules.
-4. Compare predictions with the reference answer key.
-5. Inspect incorrect fields and document failure cases.
-
-### Evaluation
-
-The first version supports per-document field matching.
-
-A full research evaluation will require:
-- Batch testing across the benchmark.
-- Official scorer integration.
-- Category-wise accuracy analysis.
-- Line-item matching.
-- An independent extraction baseline.
-- Evaluation of inconsistency-detection precision and recall.
-
-### Limitations
-
-This benchmark contains synthetic invoices. Its results
-do not establish performance on real business records.
-
-The current field matching is a simplified evaluation,
-not the benchmark's official scoring methodology.
-
-Financial discrepancies are flagged for review rather
-than automatically treated as proven accounting errors.
-
-### Dataset
-
-Invoice Extraction Benchmark v1
-
-Source: drew-ipp / InvoiceParser Pro
-
-License: CC BY 4.0
-        """)
-
-        st.link_button(
-            "View Dataset on Hugging Face",
-            f"https://huggingface.co/datasets/{REPO_ID}",
-        )
-
-else:
-    st.info(
-        "The application is waiting for public dataset metadata."
-    )
+st.caption("DataTrust · Research prototype · Public synthetic invoice data · No private invoices required")
