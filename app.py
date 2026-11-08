@@ -906,12 +906,6 @@ if "dt_batch_results" in st.session_state:
         file_name="datatrust_batch_documents.csv", mime="text/csv",
         key="dt_download_documents",
     )
-    st.download_button(
-        "Download experiment metadata JSON",
-        json.dumps(meta, indent=2).encode("utf-8"),
-        file_name="datatrust_experiment_metadata.json", mime="application/json",
-        key="dt_download_meta",
-    )
     if not failed.empty:
         st.warning(
             "Some documents failed or had unmapped reference fields. "
