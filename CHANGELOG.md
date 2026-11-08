@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0 — Exploratory batch research
+
+- Added a user-controlled 1–10-document batch experiment with per-run API cost warning.
+- Added per-field analysis, micro and macro field-match rates, failure accounting, and CSV/JSON exports.
+- Restricted dollar-sign normalization to US-coded benchmark documents and documented sampling limitations.
+- Kept existing single-document extraction and validation unchanged.
+
 ## 0.2.1 — Preview and evaluation fixes
 
 - Render PDF pages server-side with PyMuPDF instead of browser-blocked data URLs.

@@ -429,14 +429,17 @@ def normalize_currency(value):
     if value is None:
         return None
     normalized = str(value).strip().upper()
-    symbols = {"$": "USD", "US$": "USD", "USD": "USD",
+    symbols = {"US$": "USD", "USD": "USD",
                "€": "EUR", "EUR": "EUR", "£": "GBP", "GBP": "GBP",
                "¥": "JPY", "JPY": "JPY"}
     return symbols.get(normalized, normalized)
 
 
-def match_field(field, predicted, expected):
+def match_field(field, predicted, expected, country_hint=None):
     if field == "currency":
+        if country_hint == "US":
+            predicted = "USD" if str(predicted).strip() == "$" else predicted
+            expected = "USD" if str(expected).strip() == "$" else expected
         return normalize_currency(predicted) == normalize_currency(expected)
 
     if field in NUMERIC_FIELDS:
@@ -506,6 +509,8 @@ def find_reference_fields(reference):
 
 def evaluate_extraction(prediction, reference):
     expected_fields = find_reference_fields(reference)
+    doc_id = str(reference.get("doc_id", "")).lower() if isinstance(reference, dict) else ""
+    country_hint = "US" if doc_id.startswith("us-") or "-us-" in doc_id else None
 
     records = []
 
@@ -520,7 +525,7 @@ def evaluate_extraction(prediction, reference):
             "Field": field,
             "Predicted": predicted,
             "Reference": expected,
-            "Correct": match_field(field, predicted, expected),
+            "Correct": match_field(field, predicted, expected, country_hint=country_hint),
         })
 
     return pd.DataFrame(records)
@@ -734,3 +739,191 @@ Batch evaluation and independent baselines are planned work.
     st.link_button("View public benchmark dataset", f"https://huggingface.co/datasets/{REPO_ID}")
 
 st.caption("DataTrust · Research prototype · Public synthetic invoice data · No private invoices required")
+
+
+# ============================================================
+# BATCH BENCHMARK RESEARCH
+# ============================================================
+
+st.markdown('<div class="dt-kicker">04 / Research experiments</div>', unsafe_allow_html=True)
+st.markdown('<div class="dt-section">Batch benchmark & error analysis</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="dt-sub">Run a controlled experiment across several public invoices. '
+    'Every document invokes Gemini and may incur API usage.</div>',
+    unsafe_allow_html=True,
+)
+
+with st.container(border=True):
+    st.markdown("#### Experiment configuration")
+    st.caption("Run a small sample first. Results are saved in this browser session until it is reset.")
+    b1, b2, b3 = st.columns([1.2, 1, 1])
+    with b1:
+        batch_category = st.selectbox(
+            "Experiment category", ["All categories"] + categories,
+            key="dt_batch_category",
+        )
+    with b2:
+        batch_count = st.number_input(
+            "Number of documents", min_value=1, max_value=10, value=3, step=1,
+            help="Maximum 10 per run to control API usage.",
+            key="dt_batch_count",
+        )
+    with b3:
+        st.text_input("Model", value=get_setting("GEMINI_MODEL", "gemini-3.6-flash"), disabled=True)
+
+    batch_pool = [
+        row for row in metadata
+        if batch_category == "All categories"
+        or str(row.get("category", "Unknown")) == batch_category
+    ]
+    batch_sample = batch_pool[:int(batch_count)]
+    st.caption(
+        f"This run will process {len(batch_sample)} document(s) in dataset order. "
+        "Each model request may consume API quota."
+    )
+    run_batch = st.button(
+        "Run batch evaluation", type="primary", use_container_width=True,
+        key="dt_run_batch",
+    )
+    if run_batch:
+        from datetime import datetime, timezone
+        batch_rows = []
+        field_rows = []
+        progress = st.progress(0, text="Starting experiment...")
+        for position, record in enumerate(batch_sample, start=1):
+            doc_id = str(record.get("doc_id", "unknown"))
+            progress.progress(
+                (position - 1) / max(len(batch_sample), 1),
+                text=f"Processing {position}/{len(batch_sample)}: {doc_id}",
+            )
+            result_row = {
+                "doc_id": doc_id,
+                "category": str(record.get("category", "Unknown")),
+                "difficulty": str(record.get("difficulty", "Unknown")),
+                "status": "failed", "correct": 0, "compared": 0,
+                "match_rate": None, "validation_findings": None,
+                "error": "",
+            }
+            try:
+                document_bytes, document_mime = load_selected_document(record)
+                predicted = extract_invoice(document_bytes, document_mime)
+                validation = validate_invoice(predicted)
+                reference = load_reference(record)
+                comparisons = evaluate_extraction(predicted, reference)
+                if comparisons.empty:
+                    result_row["status"] = "no_mapped_fields"
+                    result_row["error"] = "No reference fields could be mapped"
+                else:
+                    n_correct = int(comparisons["Correct"].sum())
+                    n_compared = len(comparisons)
+                    result_row.update({
+                        "status": "evaluated",
+                        "correct": n_correct,
+                        "compared": n_compared,
+                        "match_rate": n_correct / n_compared,
+                        "validation_findings": len(validation),
+                    })
+                    for _, field_row in comparisons.iterrows():
+                        field_rows.append({
+                            "doc_id": doc_id,
+                            "category": result_row["category"],
+                            "difficulty": result_row["difficulty"],
+                            "field": str(field_row["Field"]),
+                            "predicted": str(field_row["Predicted"]),
+                            "reference": str(field_row["Reference"]),
+                            "correct": bool(field_row["Correct"]),
+                        })
+            except Exception as error:
+                result_row["error"] = str(error)[:400]
+            batch_rows.append(result_row)
+        progress.progress(1.0, text="Experiment finished")
+        st.session_state["dt_batch_results"] = batch_rows
+        st.session_state["dt_batch_fields"] = field_rows
+        st.session_state["dt_batch_meta"] = {
+            "run_utc": datetime.now(timezone.utc).isoformat(),
+            "model": get_setting("GEMINI_MODEL", "gemini-3.6-flash"),
+            "dataset": REPO_ID,
+            "category": batch_category,
+            "requested_documents": len(batch_sample),
+            "prompt_version": "app.py / EXTRACTION_PROMPT",
+            "sampling": "first N in dataset order; not randomized",
+        }
+        st.rerun()
+
+if "dt_batch_results" in st.session_state:
+    batch_df = pd.DataFrame(st.session_state["dt_batch_results"])
+    fields_df = pd.DataFrame(st.session_state["dt_batch_fields"])
+    meta = st.session_state["dt_batch_meta"]
+    valid = batch_df[batch_df["status"] == "evaluated"]
+    failed = batch_df[batch_df["status"] != "evaluated"]
+    st.markdown("#### Experiment results")
+    st.caption(
+        f"Run: {meta['run_utc']} · Model: {meta['model']} · "
+        f"Sampling: {meta['sampling']}"
+    )
+    k1, k2, k3, k4 = st.columns(4)
+    k1.metric("Documents attempted", len(batch_df))
+    k2.metric("Documents evaluated", len(valid))
+    k3.metric("Failures / unmapped", len(failed))
+    if not fields_df.empty:
+        micro = float(fields_df["correct"].mean())
+        k4.metric("Micro field match", f"{micro:.1%}")
+        st.caption(
+            "Micro field match = correct mapped fields / all mapped fields in successfully "
+            "evaluated documents. Failed documents are excluded from this denominator."
+        )
+        macro = float(valid["match_rate"].mean()) if not valid.empty else 0
+        st.write(f"**Macro document-average field match:** {macro:.1%}")
+        by_field = (
+            fields_df.groupby("field", as_index=False)
+            .agg(correct=("correct", "sum"), compared=("correct", "size"))
+        )
+        by_field["match_rate"] = by_field["correct"] / by_field["compared"]
+        st.markdown("##### Accuracy by extracted field")
+        st.dataframe(by_field, hide_index=True, use_container_width=True)
+        st.bar_chart(by_field.set_index("field")["match_rate"])
+        errors = fields_df[~fields_df["correct"]]
+        st.markdown("##### Field-level errors")
+        if errors.empty:
+            st.success("No mismatches among evaluated fields in this sample.")
+        else:
+            st.dataframe(errors, hide_index=True, use_container_width=True)
+        st.download_button(
+            "Download field-level results CSV",
+            fields_df.to_csv(index=False).encode("utf-8"),
+            file_name="datatrust_batch_fields.csv", mime="text/csv",
+            key="dt_download_fields",
+        )
+        st.download_button(
+            "Download per-field summary CSV",
+            by_field.to_csv(index=False).encode("utf-8"),
+            file_name="datatrust_field_summary.csv", mime="text/csv",
+            key="dt_download_summary",
+        )
+    else:
+        k4.metric("Micro field match", "N/A")
+        st.warning("No documents produced mapped reference comparisons.")
+    st.markdown("##### Document-level results")
+    st.dataframe(batch_df, hide_index=True, use_container_width=True)
+    st.download_button(
+        "Download document-level results CSV",
+        batch_df.to_csv(index=False).encode("utf-8"),
+        file_name="datatrust_batch_documents.csv", mime="text/csv",
+        key="dt_download_documents",
+    )
+    st.download_button(
+        "Download experiment metadata JSON",
+        json.dumps(meta, indent=2).encode("utf-8"),
+        file_name="datatrust_experiment_metadata.json", mime="application/json",
+        key="dt_download_meta",
+    )
+    if not failed.empty:
+        st.warning(
+            "Some documents failed or had unmapped reference fields. "
+            "Review the errors before interpreting these metrics."
+        )
+
+st.caption(
+    "Batch results are exploratory, sample-dependent, and not official benchmark scores. "
+    "No independent baseline is included in this version."
+)

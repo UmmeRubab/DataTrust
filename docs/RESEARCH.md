@@ -1,4 +1,4 @@
-﻿# DataTrust — Research Methodology
+# DataTrust — Research Methodology
 
 ## Research Motivation
 
@@ -81,3 +81,8 @@ The implemented validation checks identify possible issues, not independently ve
 ## Research Integrity
 
 Only observed, reproducible experimental results should be reported as findings. Planned features and experiments must be clearly distinguished from implemented functionality.
+
+
+## Implemented exploratory batch evaluation (v0.3)
+
+A controlled 1–10-document experiment now reports micro/macro mapped-field match, per-field comparisons, document-level failures and exports. See [EXPERIMENTS.md](EXPERIMENTS.md). This does not establish official benchmark accuracy.

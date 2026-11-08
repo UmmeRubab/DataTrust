@@ -208,3 +208,18 @@ Public invoice benchmark: drew-ipp / Invoice Extraction Benchmark.
 No license has been selected for the DataTrust source code yet. All rights remain with the copyright holder unless a license is added.
 
 Third-party datasets, models, and libraries retain their respective licenses.
+
+
+## Batch Benchmarking (v0.3)
+
+The **Batch benchmark & error analysis** section processes a selected sample of 1–10 public invoice documents. It records successes, failures, per-document field match rates, validation findings, and per-field mismatches. It provides CSV exports and experiment metadata. Each document makes a Gemini API call; check API quota and pricing before running.
+
+**Metrics:** Micro field match is the proportion of correctly matched mapped fields across successfully evaluated documents. Macro field match is the average of per-document field match rates. Failed documents and documents with no mapped fields are counted separately, not silently treated as successes. Missing reference mappings are not evaluated.
+
+**Sampling:** The first N records in dataset order, optionally filtered by category. This is not a randomized or representative sample. There is no claim of official benchmark accuracy.
+
+**Currency:** A previous example extracted `$` where the answer key recorded `USD`. The application maps `$` to `USD` only when the benchmark document ID indicates US context; otherwise the symbol is left ambiguous. The raw model output is retained. The latest observed extraction returned `USD` directly. Future work should make currency mapping document-context-aware.
+
+**Reproducibility:** Download all available CSVs and the experiment metadata JSON immediately after a run; results are stored in the Streamlit browser session, not a persistent experiment database. Record model version, dataset revision, prompt, and code commit for publication-grade experiments.
+
+**Known limitations:** No independent OCR/regex baseline, no line-item scoring, no confidence calibration, no stratified sampling, and no official benchmark scoring protocol. Gemini model behavior and API availability may vary.
