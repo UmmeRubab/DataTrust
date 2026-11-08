@@ -662,11 +662,6 @@ with right:
             if isinstance(items, list) and items:
                 with st.expander(f"Line items ({len(items)})"):
                     st.dataframe(pd.DataFrame(items), hide_index=True, use_container_width=True)
-            with st.expander("Full extraction JSON"):
-                st.json(prediction)
-            st.download_button("Download extracted JSON", data=json.dumps(prediction, indent=2),
-                               file_name=f"{loaded_id}_extraction.json", mime="application/json",
-                               use_container_width=True)
         else:
             st.markdown('<div class="dt-note">AI output is unverified until independent quality checks and reference comparison.</div>',
                         unsafe_allow_html=True)
