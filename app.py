@@ -538,8 +538,8 @@ def evaluate_extraction(prediction, reference):
 st.markdown("""
 <div class="dt-hero">
   <div class="dt-eyebrow">DOCUMENT INTELLIGENCE / RESEARCH WORKSPACE</div>
-  <h1>Data Trust </h1>
-  <h3>Invoice Data Extraction, Validation &amp; Evaluation.</h3>
+    <h1 style="color: #FFFFFF !important;">DataTrust</h1>
+    <h3 style="color: #FFFFFF !important;">Invoice Data Extraction, Validation &amp; Evaluation</h3>
 </div>
 """, unsafe_allow_html=True)
 
