@@ -539,7 +539,11 @@ st.markdown("""
 <div class="dt-hero">
   <div class="dt-eyebrow">DOCUMENT INTELLIGENCE / RESEARCH WORKSPACE</div>
   <h1>Data Trust</h1>
-  <h4><span style="color:#77777">Invoice Data Extraction, Validation &amp; Evaluation.</span> </h4>
+<h4 style="color: #FFFFFF !important;">
+    <span style="color: #FFFFFF !important;">
+        Invoice Data Extraction, Validation &amp; Evaluation
+    </span>
+</h4>
 </div>
 """, unsafe_allow_html=True)
 
