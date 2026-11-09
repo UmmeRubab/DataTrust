@@ -1,4 +1,5 @@
-# Invoice Data Extraction & Validation
+# DataTrust
+### Invoice Data Extraction, Validation & Evaluation
 
 **Multimodal Invoice Extraction, Data Quality Validation, and Benchmark Evaluation**
 
