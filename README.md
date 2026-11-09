@@ -1,8 +1,8 @@
-# DataTrust / Quality Studio
+# Invoice Data Extraction & Validation
 
 **Multimodal Invoice Extraction, Data Quality Validation, and Benchmark Evaluation**
 
-[Live Application](https://datatrustt.streamlit.app/) · [Source Code](https://github.com/UmmeRubab/DataTrust)
+[Live Application](https://invoicedata.streamlit.app/) · [Source Code](https://github.com/UmmeRubab/DataTrust)
 
 ## Overview
 
