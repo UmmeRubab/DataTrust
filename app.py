@@ -20,7 +20,7 @@ from PIL import Image
 # ============================================================
 
 st.set_page_config(
-    page_title="DataTrust | Intelligent Document Processing",
+    page_title="Invoice Data Extraction & Validation | Intelligent Document Processing",
     page_icon="🛡️",
     layout="wide",
 )
